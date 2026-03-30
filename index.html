@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>Lobster AI · 登录</title>
+    <title>Lobster AI · 简洁智能助手</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
@@ -38,7 +38,6 @@
             --bubble-assistant: #334155;
         }
         .app { max-width: 800px; width: 100%; height: 95vh; background: var(--bg-secondary); border-radius: 28px; box-shadow: 0 10px 25px -5px rgba(0,0,0,0.1); display: flex; flex-direction: column; overflow: hidden; position: relative; }
-        /* 登录界面 */
         .login-container {
             position: absolute;
             top: 0;
@@ -50,7 +49,6 @@
             justify-content: center;
             align-items: center;
             z-index: 100;
-            transition: opacity 0.3s;
         }
         .login-card {
             background: var(--bg-primary);
@@ -61,10 +59,7 @@
             box-shadow: 0 8px 20px rgba(0,0,0,0.1);
             text-align: center;
         }
-        .login-card h2 {
-            margin-top: 0;
-            color: var(--accent);
-        }
+        .login-card h2 { margin-top: 0; color: var(--accent); }
         .login-card input {
             width: 100%;
             padding: 12px;
@@ -76,9 +71,7 @@
             font-size: 1rem;
             outline: none;
         }
-        .login-card input:focus {
-            border-color: var(--accent);
-        }
+        .login-card input:focus { border-color: var(--accent); }
         .login-card button {
             width: 100%;
             padding: 12px;
@@ -90,15 +83,8 @@
             cursor: pointer;
             margin-top: 8px;
         }
-        .login-card button:hover {
-            background: var(--accent-hover);
-        }
-        .login-card .error {
-            color: #e53e3e;
-            margin-top: 12px;
-            font-size: 0.85rem;
-        }
-        /* 主界面（初始隐藏） */
+        .login-card button:hover { background: var(--accent-hover); }
+        .login-card .error { color: #e53e3e; margin-top: 12px; font-size: 0.85rem; }
         .main-app {
             display: flex;
             flex-direction: column;
@@ -106,9 +92,7 @@
             opacity: 0;
             transition: opacity 0.3s;
         }
-        .main-app.visible {
-            opacity: 1;
-        }
+        .main-app.visible { opacity: 1; }
         .header { background: var(--header-bg); color: var(--header-text); padding: 8px 12px; display: flex; justify-content: space-between; align-items: center; gap: 8px; border-bottom: 1px solid var(--border); }
         .logo { font-weight: 700; font-size: 1.1rem; display: flex; align-items: center; gap: 4px; }
         .logo span { color: var(--accent); }
@@ -147,8 +131,24 @@
             min-width: 0;
         }
         .compact-input:focus { border-color: var(--accent); }
-        .action-buttons { display: flex; gap: 6px; padding: 6px 12px 12px; justify-content: flex-end; flex-wrap: wrap; background: var(--bg-secondary); border-top: 1px solid var(--border); }
-        .small-btn { background: var(--border); color: var(--text-primary); font-size: 0.7rem; padding: 4px 10px; border-radius: 40px; cursor: pointer; border: none; }
+        .action-buttons {
+            display: flex;
+            gap: 6px;
+            padding: 6px 12px 12px;
+            justify-content: flex-start;
+            flex-wrap: wrap;
+            background: var(--bg-secondary);
+            border-top: 1px solid var(--border);
+        }
+        .small-btn {
+            background: var(--border);
+            color: var(--text-primary);
+            font-size: 0.7rem;
+            padding: 4px 10px;
+            border-radius: 40px;
+            cursor: pointer;
+            border: none;
+        }
         .small-btn:hover { filter: brightness(0.9); }
         .drawer { position: fixed; right: 0; top: 0; width: 280px; height: 100%; background: var(--bg-secondary); box-shadow: -2px 0 10px rgba(0,0,0,0.1); transform: translateX(100%); transition: transform 0.3s; z-index: 1000; padding: 16px; overflow-y: auto; }
         .drawer.open { transform: translateX(0); }
@@ -167,7 +167,6 @@
 </head>
 <body>
 <div class="app">
-    <!-- 登录界面 -->
     <div class="login-container" id="loginContainer">
         <div class="login-card">
             <h2>🦞 Lobster AI</h2>
@@ -178,7 +177,6 @@
         </div>
     </div>
 
-    <!-- 主应用界面（初始隐藏） -->
     <div class="main-app" id="mainApp">
         <div class="header">
             <div class="logo">🦞 <span>Lobster AI</span></div>
@@ -196,11 +194,7 @@
             <button class="compact-btn" id="sendBtn">发送</button>
         </div>
         <div class="action-buttons">
-            <button class="small-btn" id="clearHistoryBtn">🗑️ 清空</button>
-            <button class="small-btn" id="summarizeBtn">📝 摘要</button>
-            <button class="small-btn" id="exportBtn">📤 导出</button>
-            <button class="small-btn" id="templatesBtn">📋 模板</button>
-            <button class="small-btn" id="multiModelBtn">🔄 对比</button>
+            <button class="small-btn" id="clearHistoryBtn">🗑️ 清空记忆</button>
         </div>
     </div>
 </div>
@@ -236,21 +230,28 @@
 </div>
 
 <script>
-    // ======================== Supabase 配置（已填入你的信息） ========================
+    // Supabase 配置（请替换为你的实际值）
     const SUPABASE_URL = "https://nqkmnaqdkkpuzknmipbv.supabase.co";
     const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5xa21uYXFka2twdXprbm1pcGJ2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ4OTEwMDAsImV4cCI6MjA5MDQ2NzAwMH0.6Do4nN4Mwpt7cvIikAcXy5w7yKxbw0BW7NqsT5nZ71c";
 
-    // ======================== 默认模型列表 ========================
-    const DEFAULT_MODELS = [
-        { display: "MiMo-V2-Pro (OpenRouter 免费)", value: "openrouter:xiaomi/mimo-v2-pro" },
-        { display: "MiMo-V2-Omni (OpenRouter 免费)", value: "openrouter:xiaomi/mimo-v2-omni" },
-        { display: "GLM-4.7-Flash (OpenRouter 免费)", value: "openrouter:zai-org/glm-4.7-flash" },
-        { display: "HyperNova 60B (OpenRouter 免费)", value: "openrouter:multiversecomputingcai/hypernova-60b-2602" },
-        { display: "Mistral-7B (OpenRouter 免费)", value: "openrouter:mistralai/mistral-7b-instruct" },
-        { display: "Qwen2.5-72B (OpenRouter 免费)", value: "openrouter:qwen/qwen2.5-72b-instruct" },
-        { display: "DeepSeek-V3.2 (OpenRouter 免费)", value: "openrouter:deepseek/deepseek-v3.2" },
-        { display: "MiniCPM-o 4.5 (OpenRouter 免费)", value: "openrouter:openbmb/minicpm-o-4.5" }
+    // 免费模型列表（包含 OpenRouter 和 Hugging Face 热门免费模型）
+    const FREE_MODELS = [
+        { display: "Llama 3.3 70B (OpenRouter 免费)", value: "openrouter:meta-llama/llama-3.3-70b-instruct:free" },
+        { display: "Nemotron 3 Super (OpenRouter 免费)", value: "openrouter:nvidia/nemotron-3-super-120b:free" },
+        { display: "Qwen3-Next 80B (OpenRouter 免费)", value: "openrouter:qwen/qwen3-next-80b-instruct:free" },
+        { display: "Devstral 2 (OpenRouter 免费)", value: "openrouter:mistralai/devstral-2:free" },
+        { display: "MiMo-V2-Flash (OpenRouter 免费)", value: "openrouter:xiaomi/mimo-v2-flash:free" },
+        { display: "GLM-4.5-Air (OpenRouter 免费)", value: "openrouter:zai-org/glm-4.5-air:free" },
+        { display: "Mistral Small 3.1 (OpenRouter 免费)", value: "openrouter:mistralai/mistral-small-3.1-24b-instruct:free" },
+        { display: "Arcee Trinity Mini (OpenRouter 免费)", value: "openrouter:arcee-ai/trinity-mini:free" },
+        { display: "GPT-OSS 20B (OpenRouter 免费)", value: "openrouter:openai/gpt-oss-20b:free" },
+        { display: "Mistral 7B Instruct (HF 免费)", value: "hf:mistralai/Mistral-7B-Instruct-v0.3" },
+        { display: "Llama 3.1 8B (HF 免费)", value: "hf:meta-llama/Llama-3.1-8B-Instruct" },
+        { display: "Qwen2.5-72B (HF 免费)", value: "hf:Qwen/Qwen2.5-72B-Instruct" },
+        { display: "Qwen3-8B (HF 免费)", value: "hf:Qwen/Qwen3-8B" },
+        { display: "Gemma 3 27B (HF 免费)", value: "hf:google/gemma-3-27b-it" }
     ];
+    const DEFAULT_MODELS = [...FREE_MODELS];
 
     const PERSONAS = {
         "顶尖分析师": "你是我的私人AI助手，身份是高级分析师、商业策略顾问。风格冷静、逻辑清晰、条理分明。回答必须分步骤，结论明确。不允许胡说八道，在回答时尽量引用数据/事实。如果问题涉及金融、科技、AI行业，请突出你的专业性。",
@@ -282,7 +283,6 @@
     const loginPassword = document.getElementById("loginPassword");
     const loginButton = document.getElementById("loginButton");
     const loginError = document.getElementById("loginError");
-
     const modelSelect = document.getElementById("modelSelect");
     const personaSelect = document.getElementById("personaSelect");
     const themeToggle = document.getElementById("themeToggle");
@@ -292,10 +292,6 @@
     const sendBtn = document.getElementById("sendBtn");
     const voiceBtn = document.getElementById("voiceBtn");
     const clearHistoryBtn = document.getElementById("clearHistoryBtn");
-    const summarizeBtn = document.getElementById("summarizeBtn");
-    const exportBtn = document.getElementById("exportBtn");
-    const templatesBtn = document.getElementById("templatesBtn");
-    const multiModelBtn = document.getElementById("multiModelBtn");
     const overlay = document.getElementById("overlay");
     const drawer = document.getElementById("drawer");
     const closeDrawer = document.getElementById("closeDrawer");
@@ -318,16 +314,14 @@
     const restoreBtn = document.getElementById("restoreBtn");
     const restoreFile = document.getElementById("restoreFile");
 
-    // ======================== 初始化 Supabase ========================
+    // Supabase 初始化
     supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-    // 检查是否已有有效 session
     supabaseClient.auth.getSession().then(({ data: { session } }) => {
         if (session) {
             currentUser = session.user;
             showMainApp();
             loadUserData();
         } else {
-            // 显示登录界面
             loginContainer.style.display = "flex";
             mainApp.classList.remove("visible");
         }
@@ -338,7 +332,6 @@
         mainApp.classList.add("visible");
     }
 
-    // 登录处理
     loginButton.addEventListener("click", async () => {
         const email = loginEmail.value.trim();
         const password = loginPassword.value;
@@ -361,9 +354,7 @@
         }
     });
 
-    // ======================== 用户数据加载 ========================
     async function loadUserData() {
-        // 加载模型列表
         const { data: modelsData } = await supabaseClient.from("user_models").select("*").eq("user_id", currentUser.id);
         if (modelsData && modelsData.length > 0) {
             modelList = modelsData.map(m => ({ display: m.display, value: m.model_value }));
@@ -372,7 +363,6 @@
         }
         renderModelSelect();
 
-        // 加载对话历史
         const { data: historyData } = await supabaseClient.from("conversations").select("*").eq("user_id", currentUser.id).order("created_at", { ascending: true });
         if (historyData && historyData.length) {
             conversationHistory = historyData.map(h => ({ role: h.role, content: h.content, model: h.model }));
@@ -381,14 +371,12 @@
         }
         renderChat();
 
-        // 加载其他本地配置
         loadTheme();
         loadPersonas();
         loadTemplates();
-        setupEventListeners(); // 事件绑定
+        setupEventListeners();
     }
 
-    // ======================== 以下为原有功能 ========================
     function loadTheme() {
         const dark = localStorage.getItem("theme") === "dark";
         if (dark) document.body.classList.add("dark");
@@ -422,7 +410,6 @@
         if (conversationHistory.length > 100) conversationHistory = conversationHistory.slice(-100);
         localStorage.setItem("chat_history", JSON.stringify(conversationHistory));
         if (supabaseClient && currentUser) {
-            // 简单全量同步，可优化
             supabaseClient.from("conversations").delete().eq("user_id", currentUser.id).then(() => {
                 const inserts = conversationHistory.map(msg => ({
                     user_id: currentUser.id,
@@ -540,8 +527,8 @@
     async function askWithPipeline(userMessage) {
         let selectedModel = modelSelect.value;
         if (autoModelRecommend) {
-            if (userMessage.includes("代码") || userMessage.includes("编程")) selectedModel = "openrouter:xiaomi/mimo-v2-pro";
-            else if (userMessage.includes("写") || userMessage.includes("文章")) selectedModel = "openrouter:xiaomi/mimo-v2-pro";
+            if (userMessage.includes("代码") || userMessage.includes("编程")) selectedModel = "openrouter:xiaomi/mimo-v2-flash:free";
+            else if (userMessage.includes("写") || userMessage.includes("文章")) selectedModel = "openrouter:xiaomi/mimo-v2-flash:free";
             else selectedModel = modelSelect.value;
         }
         const fullPrompt = buildContextPrompt(userMessage);
@@ -683,18 +670,33 @@
         };
         reader.readAsText(file);
     }
+
+    let isSending = false;
     async function handleSend() {
+        if (isSending) return;
         const text = userInput.value.trim();
         if (!text) return;
+        isSending = true;
+        sendBtn.disabled = true;
+        voiceBtn.disabled = true;
+
         if (text.startsWith('/')) {
-            if (handleCommand(text)) { userInput.value = ''; return; }
+            if (handleCommand(text)) {
+                userInput.value = '';
+                isSending = false;
+                sendBtn.disabled = false;
+                voiceBtn.disabled = false;
+                return;
+            }
         }
+
         userInput.value = '';
         addUserMessage(text);
         const thinkingDiv = document.createElement("div");
         thinkingDiv.className = "thinking";
         thinkingDiv.innerText = "🦞 思考中...";
         chatArea.appendChild(thinkingDiv);
+
         try {
             const answer = await askWithPipeline(text);
             thinkingDiv.remove();
@@ -718,31 +720,36 @@
                 conversationHistory.pop();
                 saveHistory();
             }
+        } finally {
+            isSending = false;
+            sendBtn.disabled = false;
+            voiceBtn.disabled = false;
         }
     }
+
+    function clearHistory() {
+        conversationHistory = [];
+        saveHistory();
+        renderChat();
+        addAssistantMessage("历史记忆已清空。");
+    }
+
     function setupEventListeners() {
         sendBtn.addEventListener("click", handleSend);
-        userInput.addEventListener("keypress", (e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); handleSend(); } });
+        userInput.addEventListener("keypress", (e) => {
+            if (e.key === "Enter" && !e.shiftKey) {
+                e.preventDefault();
+                if (!isSending) handleSend();
+            }
+        });
         themeToggle.addEventListener("click", toggleTheme);
         settingsBtn.addEventListener("click", () => { drawer.classList.add("open"); overlay.classList.add("active"); });
         closeDrawer.addEventListener("click", () => { drawer.classList.remove("open"); overlay.classList.remove("active"); });
         overlay.addEventListener("click", () => { drawer.classList.remove("open"); overlay.classList.remove("active"); });
-        clearHistoryBtn.addEventListener("click", () => { conversationHistory = []; saveHistory(); renderChat(); addAssistantMessage("历史记忆已清空。"); });
-        summarizeBtn.addEventListener("click", summarizeConversation);
-        exportBtn.addEventListener("click", exportData);
+        clearHistoryBtn.addEventListener("click", clearHistory);
+        backupBtn.addEventListener("click", exportData);
         restoreBtn.addEventListener("click", () => restoreFile.click());
         restoreFile.addEventListener("change", (e) => { if (e.target.files[0]) importData(e.target.files[0]); restoreFile.value = ""; });
-        templatesBtn.addEventListener("click", () => { drawer.classList.add("open"); overlay.classList.add("active"); });
-        multiModelBtn.addEventListener("click", async () => {
-            const lastUser = [...conversationHistory].reverse().find(m => m.role === "user");
-            if (!lastUser) { addAssistantMessage("请先发送一条消息。"); return; }
-            const context = buildContextPrompt(lastUser.content);
-            const compareModels = modelList.slice(0, 3);
-            const results = await Promise.all(compareModels.map(m => callAPI(m.value, context, { maxTokens: 800 })));
-            let msg = "📊 多模型对比结果：\n\n";
-            compareModels.forEach((m, i) => msg += `${i+1}. ${m.display}:\n${results[i]}\n\n`);
-            addAssistantMessage(msg, "多模型对比");
-        });
         voiceBtn.addEventListener("click", startSpeech);
         temperatureSlider.addEventListener("input", () => { temperature = parseFloat(temperatureSlider.value); tempValue.innerText = temperature; });
         topPSlider.addEventListener("input", () => { topP = parseFloat(topPSlider.value); topPValue.innerText = topP; });
@@ -792,6 +799,7 @@
             }
         });
     }
+
     initSpeech();
 </script>
 </body>
