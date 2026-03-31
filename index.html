@@ -3,13 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>命理分析系统 · 龙虾智能助手</title>
+    <title>命理分析系统</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        /* 样式与之前完全一致，此处省略，实际使用时请保留原样式 */
         * { box-sizing: border-box; font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; transition: background 0.3s, color 0.3s; }
         body { margin: 0; padding: 10px; height: 100vh; display: flex; justify-content: center; align-items: center; background: var(--bg-primary); }
         :root {
@@ -97,7 +96,7 @@
         .header { background: var(--header-bg); color: var(--header-text); padding: 8px 12px; display: flex; justify-content: space-between; align-items: center; gap: 8px; border-bottom: 1px solid var(--border); }
         .logo { font-weight: 700; font-size: 1.1rem; display: flex; align-items: center; gap: 4px; }
         .logo span { color: var(--accent); }
-        .controls { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+        .controls { display: flex; gap: 6px; align-items: center; }
         .compact-select, .compact-btn {
             padding: 4px 8px;
             font-size: 0.7rem;
@@ -137,7 +136,6 @@
             gap: 6px;
             padding: 6px 12px 12px;
             justify-content: flex-start;
-            flex-wrap: wrap;
             background: var(--bg-secondary);
             border-top: 1px solid var(--border);
         }
@@ -151,14 +149,6 @@
             border: none;
         }
         .small-btn:hover { filter: brightness(0.9); }
-        .drawer { position: fixed; right: 0; top: 0; width: 280px; height: 100%; background: var(--bg-secondary); box-shadow: -2px 0 10px rgba(0,0,0,0.1); transform: translateX(100%); transition: transform 0.3s; z-index: 1000; padding: 16px; overflow-y: auto; }
-        .drawer.open { transform: translateX(0); }
-        .drawer h3 { margin-top: 0; font-size: 1rem; }
-        .drawer input, .drawer select, .drawer textarea { width: 100%; margin-bottom: 10px; padding: 6px; border-radius: 12px; border: 1px solid var(--border); background: var(--bg-primary); color: var(--text-primary); font-size: 0.8rem; }
-        .close-drawer { position: absolute; top: 8px; right: 12px; background: none; border: none; font-size: 20px; cursor: pointer; color: var(--text-primary); }
-        .overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); opacity: 0; visibility: hidden; transition: 0.3s; z-index: 999; }
-        .overlay.active { opacity: 1; visibility: visible; }
-        pre code.hljs { background: transparent; }
         @media (max-width: 600px) {
             .message { max-width: 95%; }
             .compact-select, .compact-btn { font-size: 0.65rem; padding: 3px 6px; }
@@ -184,13 +174,11 @@
             <div class="controls">
                 <select id="modelSelect" class="compact-select"></select>
                 <button id="themeToggle" class="compact-btn">🌓</button>
-                <button id="settingsBtn" class="compact-btn">⚙️</button>
             </div>
         </div>
         <div class="chat-area" id="chatArea"></div>
         <div class="input-area">
-            <input type="text" id="userInput" class="compact-input" placeholder="输入出生信息或问事... 支持 /list, /add 等指令">
-            <button id="voiceBtn" class="compact-btn">🎤</button>
+            <input type="text" id="userInput" class="compact-input" placeholder="输入出生信息或问事... 支持 /list, /add, /switch">
             <button class="compact-btn" id="sendBtn">发送</button>
         </div>
         <div class="action-buttons">
@@ -199,41 +187,12 @@
     </div>
 </div>
 
-<div class="overlay" id="overlay"></div>
-<div class="drawer" id="drawer">
-    <button class="close-drawer" id="closeDrawer">✖</button>
-    <h3>📚 典籍参考</h3>
-    <p style="font-size:0.8rem; color:var(--text-secondary);">本系统核心理论基于以下经典：</p>
-    <ul style="font-size:0.75rem; margin-left:1rem;">
-        <li>《滴天髓》</li>
-        <li>《穷通宝鉴》</li>
-        <li>《三命通会》</li>
-        <li>《子平真诠》</li>
-        <li>《渊海子平》</li>
-        <li>《星平会海》</li>
-        <li>《命理探原》</li>
-        <li>《千里命稿》</li>
-        <li>《神峰通考》</li>
-        <li>《五行大义》</li>
-    </ul>
-    <hr>
-    <h4>提示词模板</h4>
-    <select id="templateSelect"></select>
-    <button id="insertTemplateBtn">插入</button>
-    <button id="saveTemplateBtn">保存当前输入为模板</button>
-    <hr>
-    <h4>数据管理</h4>
-    <button id="backupBtn">导出备份</button>
-    <button id="restoreBtn">导入备份</button>
-    <input type="file" id="restoreFile" style="display:none">
-</div>
-
 <script>
-    // ======================== Supabase 配置（请替换为你的实际值） ========================
-    const SUPABASE_URL = "https://nqkmnaqdkkpuzknmipbv.supabase.co/";
+    // ======================== Supabase 配置（你的信息已填入） ========================
+    const SUPABASE_URL = "https://nqkmnaqdkkpuzknmipbv.supabase.co";
     const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5xa21uYXFka2twdXprbm1pcGJ2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ4OTEwMDAsImV4cCI6MjA5MDQ2NzAwMH0.6Do4nN4Mwpt7cvIikAcXy5w7yKxbw0BW7NqsT5nZ71c";
 
-    // ======================== 命理分析系统核心提示词（增加意图判断） ========================
+    // ======================== 命理分析系统提示词（带意图判断） ========================
     const SYSTEM_PROMPT = `你是一个兼具命理分析能力和普通对话能力的智能助手。
 
 你的身份是：
@@ -469,21 +428,17 @@
 
 而不是AI生成`;
 
-    // ======================== 免费模型列表 ========================
+    // ======================== 免费模型列表（OpenRouter 当前可用） ========================
     const FREE_MODELS = [
-        { display: "MiMo-V2-Flash (OpenRouter 免费)", value: "openrouter:xiaomi/mimo-v2-flash:free" },
-        { display: "MiMo-V2-Omni (OpenRouter 免费)", value: "openrouter:xiaomi/mimo-v2-omni:free" },
-        { display: "GLM-4.5-Air (OpenRouter 免费)", value: "openrouter:zai-org/glm-4.5-air:free" },
-        { display: "Nemotron 3 Super (OpenRouter 免费)", value: "openrouter:nvidia/nemotron-3-super-120b:free" },
-        { display: "Trinity Mini (OpenRouter 免费)", value: "openrouter:arcee-ai/trinity-mini:free" },
-        { display: "Mistral Small 3.1 (OpenRouter 免费)", value: "openrouter:mistralai/mistral-small-3.1-24b-instruct:free" },
-        { display: "Qwen3-Next 80B (OpenRouter 免费)", value: "openrouter:qwen/qwen3-next-80b-instruct:free" }
+        { display: "MiMo-V2-Flash", value: "openrouter:xiaomi/mimo-v2-flash:free" },
+        { display: "MiMo-V2-Omni", value: "openrouter:xiaomi/mimo-v2-omni:free" },
+        { display: "GLM-4.5-Air", value: "openrouter:zai-org/glm-4.5-air:free" },
+        { display: "Nemotron 3 Super", value: "openrouter:nvidia/nemotron-3-super-120b:free" },
+        { display: "Trinity Mini", value: "openrouter:arcee-ai/trinity-mini:free" },
+        { display: "Mistral Small 3.1", value: "openrouter:mistralai/mistral-small-3.1-24b-instruct:free" },
+        { display: "Qwen3-Next 80B", value: "openrouter:qwen/qwen3-next-80b-instruct:free" }
     ];
     const DEFAULT_MODELS = [...FREE_MODELS];
-
-    let templates = [
-        { name: "提供出生信息", content: "请提供您的出生信息（阳历或阴历年月日时，以及地点），我会为您进行详细命理分析。" }
-    ];
 
     // 全局变量
     let modelList = [];
@@ -501,21 +456,10 @@
     const loginError = document.getElementById("loginError");
     const modelSelect = document.getElementById("modelSelect");
     const themeToggle = document.getElementById("themeToggle");
-    const settingsBtn = document.getElementById("settingsBtn");
     const chatArea = document.getElementById("chatArea");
     const userInput = document.getElementById("userInput");
     const sendBtn = document.getElementById("sendBtn");
-    const voiceBtn = document.getElementById("voiceBtn");
     const clearHistoryBtn = document.getElementById("clearHistoryBtn");
-    const overlay = document.getElementById("overlay");
-    const drawer = document.getElementById("drawer");
-    const closeDrawer = document.getElementById("closeDrawer");
-    const templateSelect = document.getElementById("templateSelect");
-    const insertTemplateBtn = document.getElementById("insertTemplateBtn");
-    const saveTemplateBtn = document.getElementById("saveTemplateBtn");
-    const backupBtn = document.getElementById("backupBtn");
-    const restoreBtn = document.getElementById("restoreBtn");
-    const restoreFile = document.getElementById("restoreFile");
 
     // Supabase 初始化
     supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
@@ -575,7 +519,6 @@
         renderChat();
 
         loadTheme();
-        loadTemplates();
         setupEventListeners();
     }
 
@@ -623,21 +566,6 @@
             });
         }
     }
-    function loadTemplates() {
-        const stored = localStorage.getItem("templates");
-        if (stored) try { templates = JSON.parse(stored); } catch(e) {}
-        updateTemplateSelect();
-    }
-    function updateTemplateSelect() {
-        templateSelect.innerHTML = "";
-        templates.forEach((t, idx) => {
-            const opt = document.createElement("option");
-            opt.value = idx;
-            opt.textContent = t.name;
-            templateSelect.appendChild(opt);
-        });
-    }
-    function saveTemplates() { localStorage.setItem("templates", JSON.stringify(templates)); }
     function renderChat() {
         chatArea.innerHTML = "";
         for (let msg of conversationHistory) {
@@ -690,7 +618,7 @@
             }, speed);
         });
     }
-    async function callAPI(model, prompt, params = {}) {
+    async function callAPI(model, prompt) {
         const response = await fetch('/api/chat', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -708,7 +636,7 @@
         return `${systemPrompt}\n\n对话历史:\n${context}`;
     }
     async function askWithPipeline(userMessage) {
-        let selectedModel = modelSelect.value;
+        const selectedModel = modelSelect.value;
         const fullPrompt = buildContextPrompt(userMessage);
         const answer = await callAPI(selectedModel, fullPrompt);
         return answer;
@@ -774,57 +702,7 @@
             } else addAssistantMessage(`未找到要删除的模型：${target}`, '系统指令');
             return true;
         }
-        if (cmd === '/template') {
-            const tplName = parts.slice(1).join(' ');
-            const tpl = templates.find(t => t.name.toLowerCase().includes(tplName));
-            if (tpl) { userInput.value = tpl.content; addAssistantMessage(`📋 已插入模板：${tpl.name}`, '系统指令'); }
-            else addAssistantMessage(`未找到模板：${tplName}`, '系统指令');
-            return true;
-        }
         return false;
-    }
-    let recognition;
-    function initSpeech() {
-        if ('webkitSpeechRecognition' in window) {
-            recognition = new webkitSpeechRecognition();
-            recognition.lang = 'zh-CN';
-            recognition.interimResults = false;
-            recognition.onresult = (event) => {
-                const text = event.results[0][0].transcript;
-                userInput.value = text;
-            };
-            recognition.onerror = (e) => alert('语音识别错误: ' + e.error);
-        } else alert('浏览器不支持语音输入');
-    }
-    function startSpeech() {
-        if (recognition) recognition.start();
-    }
-    function exportData() {
-        const data = {
-            models: modelList,
-            history: conversationHistory,
-            templates: templates
-        };
-        const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `lobster_backup_${new Date().toISOString()}.json`;
-        a.click();
-        URL.revokeObjectURL(url);
-    }
-    function importData(file) {
-        const reader = new FileReader();
-        reader.onload = (e) => {
-            try {
-                const data = JSON.parse(e.target.result);
-                if (data.models) { modelList = data.models; saveModels(); renderModelSelect(); }
-                if (data.history) { conversationHistory = data.history; saveHistory(); renderChat(); }
-                if (data.templates) { templates = data.templates; saveTemplates(); updateTemplateSelect(); }
-                addAssistantMessage("✅ 数据导入成功！", "系统");
-            } catch (err) { alert("导入失败: " + err.message); }
-        };
-        reader.readAsText(file);
     }
 
     let isSending = false;
@@ -834,14 +712,12 @@
         if (!text) return;
         isSending = true;
         sendBtn.disabled = true;
-        voiceBtn.disabled = true;
 
         if (text.startsWith('/')) {
             if (handleCommand(text)) {
                 userInput.value = '';
                 isSending = false;
                 sendBtn.disabled = false;
-                voiceBtn.disabled = false;
                 return;
             }
         }
@@ -879,7 +755,6 @@
         } finally {
             isSending = false;
             sendBtn.disabled = false;
-            voiceBtn.disabled = false;
         }
     }
 
@@ -899,33 +774,8 @@
             }
         });
         themeToggle.addEventListener("click", toggleTheme);
-        settingsBtn.addEventListener("click", () => { drawer.classList.add("open"); overlay.classList.add("active"); });
-        closeDrawer.addEventListener("click", () => { drawer.classList.remove("open"); overlay.classList.remove("active"); });
-        overlay.addEventListener("click", () => { drawer.classList.remove("open"); overlay.classList.remove("active"); });
         clearHistoryBtn.addEventListener("click", clearHistory);
-        backupBtn.addEventListener("click", exportData);
-        restoreBtn.addEventListener("click", () => restoreFile.click());
-        restoreFile.addEventListener("change", (e) => { if (e.target.files[0]) importData(e.target.files[0]); restoreFile.value = ""; });
-        voiceBtn.addEventListener("click", startSpeech);
-        insertTemplateBtn.addEventListener("click", () => {
-            const idx = templateSelect.value;
-            if (idx !== null) {
-                const tpl = templates[parseInt(idx)];
-                userInput.value = tpl.content;
-            }
-        });
-        saveTemplateBtn.addEventListener("click", () => {
-            const name = prompt("模板名称：");
-            if (name && userInput.value.trim()) {
-                templates.push({ name, content: userInput.value.trim() });
-                saveTemplates();
-                updateTemplateSelect();
-                addAssistantMessage(`模板「${name}」已保存。`, "系统");
-            }
-        });
     }
-
-    initSpeech();
 </script>
 </body>
 </html>
