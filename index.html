@@ -9,8 +9,8 @@
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        * { box-sizing: border-box; font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; transition: background 0.3s, color 0.3s; }
-        body { margin: 0; padding: 10px; height: 100vh; display: flex; justify-content: center; align-items: center; background: var(--bg-primary); }
+        * { box-sizing: border-box; font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; }
+        body { margin: 0; padding: 10px; height: 100vh; display: flex; justify-content: center; align-items: center; background: var(--bg-primary); transition: background 0.3s, color 0.3s; }
         :root {
             --bg-primary: #f7f9fc;
             --bg-secondary: #ffffff;
@@ -38,7 +38,7 @@
             --bubble-assistant: #334155;
         }
         .app { max-width: 800px; width: 100%; height: 95vh; background: var(--bg-secondary); border-radius: 28px; box-shadow: 0 10px 25px -5px rgba(0,0,0,0.1); display: flex; flex-direction: column; overflow: hidden; position: relative; }
-        .login-container {
+        .auth-container {
             position: absolute;
             top: 0;
             left: 0;
@@ -50,7 +50,7 @@
             align-items: center;
             z-index: 100;
         }
-        .login-card {
+        .auth-card {
             background: var(--bg-primary);
             border-radius: 32px;
             padding: 32px 24px;
@@ -59,8 +59,8 @@
             box-shadow: 0 8px 20px rgba(0,0,0,0.1);
             text-align: center;
         }
-        .login-card h2 { margin-top: 0; color: var(--accent); }
-        .login-card input {
+        .auth-card h2 { margin-top: 0; color: var(--accent); }
+        .auth-card input {
             width: 100%;
             padding: 12px;
             margin: 12px 0;
@@ -71,8 +71,8 @@
             font-size: 1rem;
             outline: none;
         }
-        .login-card input:focus { border-color: var(--accent); }
-        .login-card button {
+        .auth-card input:focus { border-color: var(--accent); }
+        .auth-card button {
             width: 100%;
             padding: 12px;
             background: var(--accent);
@@ -83,8 +83,9 @@
             cursor: pointer;
             margin-top: 8px;
         }
-        .login-card button:hover { background: var(--accent-hover); }
-        .login-card .error { color: #e53e3e; margin-top: 12px; font-size: 0.85rem; }
+        .auth-card button:hover { background: var(--accent-hover); }
+        .auth-card .error { color: #e53e3e; margin-top: 12px; font-size: 0.85rem; }
+        .auth-card .toggle-mode { margin-top: 16px; font-size: 0.85rem; color: var(--text-secondary); cursor: pointer; text-decoration: underline; }
         .main-app {
             display: flex;
             flex-direction: column;
@@ -158,16 +159,19 @@
 </head>
 <body>
 <div class="app">
-    <div class="login-container" id="loginContainer">
-        <div class="login-card">
+    <!-- 登录/注册界面 -->
+    <div class="auth-container" id="authContainer">
+        <div class="auth-card">
             <h2>🦞 命理分析系统</h2>
-            <input type="email" id="loginEmail" placeholder="邮箱" autocomplete="email">
-            <input type="password" id="loginPassword" placeholder="密码" autocomplete="current-password">
-            <button id="loginButton">登录</button>
-            <div class="error" id="loginError"></div>
+            <input type="email" id="authEmail" placeholder="邮箱" autocomplete="email">
+            <input type="password" id="authPassword" placeholder="密码" autocomplete="current-password">
+            <button id="authButton">登录</button>
+            <div class="error" id="authError"></div>
+            <div class="toggle-mode" id="toggleAuthMode">没有账号？立即注册</div>
         </div>
     </div>
 
+    <!-- 主应用界面 -->
     <div class="main-app" id="mainApp">
         <div class="header">
             <div class="logo">🦞 <span>命理分析</span></div>
@@ -193,34 +197,21 @@
     const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5xa21uYXFka2twdXprbm1pcGJ2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ4OTEwMDAsImV4cCI6MjA5MDQ2NzAwMH0.6Do4nN4Mwpt7cvIikAcXy5w7yKxbw0BW7NqsT5nZ71c";
 
     // ======================== 命理分析系统提示词（带意图判断） ========================
-    const SYSTEM_PROMPT = `你是一个兼具命理分析能力和普通对话能力的智能助手。
+    const SYSTEM_PROMPT = `你是一个融合传统命理体系与现代结构化推理能力的高级命理分析系统。
 
-你的身份是：
-- 当用户提供出生信息（如八字、年月日时）或明确要求命理分析时，你是一位精通传统命理体系的高级命理师，必须严格按照下面的推理规则进行专业命理分析。
-- 否则，你是一位友好、乐于助人的通用助手，可以闲聊、回答问题、提供建议等，无需进行任何命理分析。
+你的分析基于：
+《滴天髓》《穷通宝鉴》《三命通会》《子平真诠》等体系思想，
+并结合结构化规则推理、概率模型、评分机制与经验命例进行综合判断。
 
-【命理分析模式触发条件】
-用户消息中包含以下任一内容时，触发命理分析：
-- 明确的出生日期和时间（如“1990年8月15日下午3点”）
-- 八字四柱（如“甲子 丙寅 戊辰 壬戌”）
-- 包含“八字”、“排盘”、“命理”、“运势”等关键词的询问
-- 用户主动要求进行命理分析
-
-如果未触发命理模式，请作为普通助手自然对话，不要输出任何命理相关内容。
+【重要】你的行为模式：
+- 当用户提供出生信息（如八字、年月日时）或明确要求命理分析时，你必须严格按照下面的推理流程进行专业命理分析。
+- 否则，你是一位友好、乐于助人的通用助手，正常聊天即可，不要输出任何命理内容。
 
 --------------------------------------
 【以下为命理分析模式的完整规则，仅在触发时使用】
 --------------------------------------
 
-你的分析基于以下经典命理著作的核心思想：
-《滴天髓》、《穷通宝鉴》、《三命通会》、《子平真诠》、《渊海子平》、《星平会海》、《命理探原》、《千里命稿》、《神峰通考》、《五行大义》等。
-
-并严格遵循结构化规则推理、概率模型、评分机制与经验命例进行综合判断。
-
 【系统核心能力】
-
-你必须具备以下能力：
-
 1. 八字结构分析（五行/天干地支）
 2. 日主强弱判断
 3. 十神分析（财官印比食伤）
@@ -236,7 +227,6 @@
 13. 稳定人格表达
 
 【推理总流程（必须严格执行）】
-
 ① 日主识别（核心）
 ② 月令判断（环境）
 ③ 五行分布分析（结构）
@@ -251,148 +241,57 @@
 ⑫ 多路径概率推演
 ⑬ 评分输出
 ⑭ 个性化建议（结合用户画像）
-
 禁止跳步骤。
 
 【用神判断规则】
-
 遵循优先级：
-
 1. 调候（寒暖燥湿）
 2. 扶抑（日主强弱）
 3. 通关（冲突缓解）
-
-原则：
-- 强则抑之
-- 弱则扶之
-
-必须说明：
-- 用神
-- 忌神
-- 推导原因
+原则：强则抑之，弱则扶之。
+必须说明：用神、忌神、推导原因。
 
 【格局判断规则】
-
 流程：
-
 1. 看月令
 2. 看日主与月令关系
-3. 判断：
-
-- 正格（财/官/印/食伤）
-- 从格（从财/从官/从强等）
-- 特殊格
-
-必须说明：
-- 格局类型
-- 判断依据
-- 格局纯度
-- 格局层次
+3. 判断：正格（财/官/印/食伤）、从格（从财/从官/从强等）、特殊格
+必须说明：格局类型、判断依据、格局纯度、格局层次。
 
 【大运流年规则】
-
-判断：
-
-- 生用神 → 吉
-- 克用神 → 凶
-
-重点：
-
-- 冲 → 变动
-- 合 → 关系
-- 刑 → 冲突
-- 害 → 隐患
-
-必须给：
-- 阶段变化
-- 时间节点
-- 趋势（上升/波动/下降）
+判断：生用神 → 吉，克用神 → 凶。
+重点：冲 → 变动，合 → 关系，刑 → 冲突，害 → 隐患。
+必须给：阶段变化、时间节点、趋势（上升/波动/下降）。
 
 【断事规则（必须具体）】
-
-输出必须包含：
-
-【时间】
-【事件类型】
-【具体事件】
-【原因】
-【建议】
-
+输出必须包含：【时间】【事件类型】【具体事件】【原因】【建议】
 禁止抽象描述。
 
 【事件映射】
-
-财 → 收入/资金  
-官 → 事业/压力  
-印 → 学习/贵人  
-比劫 → 竞争/人际  
-食伤 → 创业/表达  
+财 → 收入/资金，官 → 事业/压力，印 → 学习/贵人，比劫 → 竞争/人际，食伤 → 创业/表达。
 
 【概率推理系统】
-
 必须输出多路径：
-
-路径A（主）50%+  
-路径B（次）20~40%  
-路径C（极端）<20%
-
-每条路径必须包含：
-
-- 条件
-- 结果
-- 概率
+路径A（主）50%+，路径B（次）20~40%，路径C（极端）<20%。
+每条路径包含：条件、结果、概率。
 
 【评分系统】
-
-必须输出：
-
-- 日主强度（0-100）
-- 五行平衡（0-100）
-- 格局稳定（0-100）
-- 运势波动（0-100）
-- 综合层次（0-100）
-
-必须说明评分依据。
+必须输出：日主强度（0-100）、五行平衡（0-100）、格局稳定（0-100）、运势波动（0-100）、综合层次（0-100），并说明评分依据。
 
 【命例参考机制】
-
-如存在类似结构：
-
-- 引用类似命例
-- 说明相似点
-- 用于增强判断
+如存在类似结构，引用类似命例，说明相似点，用于增强判断。
 
 【用户画像适配】
-
-根据用户特点调整：
-
-- 理性 → 强逻辑
-- 焦虑 → 强解释 + 稳定
-- 冲动 → 强风险提示
-
-必须输出：
-
-【针对你的建议】
+根据用户特点调整：理性 → 强逻辑，焦虑 → 强解释+稳定，冲动 → 强风险提示。
+必须输出：【针对你的建议】
 
 【人格系统】
-
-你必须保持：
-
-- 稳定风格（类似固定大师）
-- 理性、沉稳
-- 不讨好、不恐吓
-- 有结论、有依据
+你必须保持：稳定风格（类似固定大师）、理性、沉稳、不讨好、不恐吓、有结论、有依据。
 
 【不确定性说明】
-
-必须包含：
-
-- 分析非绝对预测
-- 存在变量
-- 建议理性参考
+必须包含：分析非绝对预测，存在变量，建议理性参考。
 
 【输出结构（强制）】
-
 【一、五行分析】  
 【二、格局判断】  
 【三、用神分析】  
@@ -410,7 +309,6 @@
 【十五、不确定性说明】
 
 【核心原则（最重要）】
-
 1. 所有结论必须来自结构推理  
 2. 必须有因果链  
 3. 不允许胡编  
@@ -418,27 +316,18 @@
 5. 不允许只有结论没有解释  
 
 【最终目标】
+让用户感受到：分析有逻辑，结论有依据，内容有深度，表达像真人大师，而不是AI生成。`;
 
-让用户感受到：
-
-- 分析有逻辑  
-- 结论有依据  
-- 内容有深度  
-- 表达像真人大师  
-
-而不是AI生成`;
-
-    // ======================== 免费模型列表（OpenRouter 当前可用） ========================
-    const FREE_MODELS = [
-        { display: "MiMo-V2-Flash", value: "openrouter:xiaomi/mimo-v2-flash:free" },
-        { display: "MiMo-V2-Omni", value: "openrouter:xiaomi/mimo-v2-omni:free" },
-        { display: "GLM-4.5-Air", value: "openrouter:zai-org/glm-4.5-air:free" },
-        { display: "Nemotron 3 Super", value: "openrouter:nvidia/nemotron-3-super-120b:free" },
-        { display: "Trinity Mini", value: "openrouter:arcee-ai/trinity-mini:free" },
-        { display: "Mistral Small 3.1", value: "openrouter:mistralai/mistral-small-3.1-24b-instruct:free" },
-        { display: "Qwen3-Next 80B", value: "openrouter:qwen/qwen3-next-80b-instruct:free" }
+    // ======================== 默认免费模型列表 ========================
+    const DEFAULT_MODELS = [
+        { display: "MiMo-V2-Flash (免费)", value: "openrouter:xiaomi/mimo-v2-flash:free" },
+        { display: "MiMo-V2-Omni (免费)", value: "openrouter:xiaomi/mimo-v2-omni:free" },
+        { display: "GLM-4.5-Air (免费)", value: "openrouter:zai-org/glm-4.5-air:free" },
+        { display: "Nemotron 3 Super (免费)", value: "openrouter:nvidia/nemotron-3-super-120b:free" },
+        { display: "Trinity Mini (免费)", value: "openrouter:arcee-ai/trinity-mini:free" },
+        { display: "Mistral Small 3.1 (免费)", value: "openrouter:mistralai/mistral-small-3.1-24b-instruct:free" },
+        { display: "Qwen3-Next 80B (免费)", value: "openrouter:qwen/qwen3-next-80b-instruct:free" }
     ];
-    const DEFAULT_MODELS = [...FREE_MODELS];
 
     // 全局变量
     let modelList = [];
@@ -446,14 +335,16 @@
     let systemPrompt = SYSTEM_PROMPT;
     let supabaseClient = null;
     let currentUser = null;
+    let isAuthMode = true; // true: 登录, false: 注册
 
     // DOM 元素
-    const loginContainer = document.getElementById("loginContainer");
+    const authContainer = document.getElementById("authContainer");
     const mainApp = document.getElementById("mainApp");
-    const loginEmail = document.getElementById("loginEmail");
-    const loginPassword = document.getElementById("loginPassword");
-    const loginButton = document.getElementById("loginButton");
-    const loginError = document.getElementById("loginError");
+    const authEmail = document.getElementById("authEmail");
+    const authPassword = document.getElementById("authPassword");
+    const authButton = document.getElementById("authButton");
+    const authError = document.getElementById("authError");
+    const toggleAuthMode = document.getElementById("toggleAuthMode");
     const modelSelect = document.getElementById("modelSelect");
     const themeToggle = document.getElementById("themeToggle");
     const chatArea = document.getElementById("chatArea");
@@ -461,47 +352,69 @@
     const sendBtn = document.getElementById("sendBtn");
     const clearHistoryBtn = document.getElementById("clearHistoryBtn");
 
-    // Supabase 初始化
+    // Supabase 客户端
     supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    // 检查是否已有登录会话
     supabaseClient.auth.getSession().then(({ data: { session } }) => {
         if (session) {
             currentUser = session.user;
             showMainApp();
             loadUserData();
         } else {
-            loginContainer.style.display = "flex";
+            authContainer.style.display = "flex";
             mainApp.classList.remove("visible");
         }
     });
 
-    function showMainApp() {
-        loginContainer.style.display = "none";
-        mainApp.classList.add("visible");
-    }
+    // 切换登录/注册模式
+    toggleAuthMode.addEventListener("click", () => {
+        isAuthMode = !isAuthMode;
+        if (isAuthMode) {
+            authButton.innerText = "登录";
+            toggleAuthMode.innerText = "没有账号？立即注册";
+        } else {
+            authButton.innerText = "注册";
+            toggleAuthMode.innerText = "已有账号？去登录";
+        }
+        authError.innerText = "";
+    });
 
-    loginButton.addEventListener("click", async () => {
-        const email = loginEmail.value.trim();
-        const password = loginPassword.value;
+    // 处理登录/注册
+    authButton.addEventListener("click", async () => {
+        const email = authEmail.value.trim();
+        const password = authPassword.value;
         if (!email || !password) {
-            loginError.innerText = "请输入邮箱和密码";
+            authError.innerText = "请输入邮箱和密码";
             return;
         }
-        loginError.innerText = "";
-        loginButton.disabled = true;
-        loginButton.innerText = "登录中...";
-        const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
-        loginButton.disabled = false;
-        loginButton.innerText = "登录";
-        if (error) {
-            loginError.innerText = error.message;
+        authError.innerText = "";
+        authButton.disabled = true;
+        authButton.innerText = isAuthMode ? "登录中..." : "注册中...";
+        let result;
+        if (isAuthMode) {
+            result = await supabaseClient.auth.signInWithPassword({ email, password });
         } else {
-            currentUser = data.user;
+            result = await supabaseClient.auth.signUp({ email, password });
+        }
+        authButton.disabled = false;
+        authButton.innerText = isAuthMode ? "登录" : "注册";
+        if (result.error) {
+            authError.innerText = result.error.message;
+        } else {
+            currentUser = result.data.user;
             showMainApp();
             loadUserData();
         }
     });
 
+    function showMainApp() {
+        authContainer.style.display = "none";
+        mainApp.classList.add("visible");
+    }
+
     async function loadUserData() {
+        // 加载模型列表
         const { data: modelsData } = await supabaseClient.from("user_models").select("*").eq("user_id", currentUser.id);
         if (modelsData && modelsData.length > 0) {
             modelList = modelsData.map(m => ({ display: m.display, value: m.model_value }));
@@ -510,6 +423,7 @@
         }
         renderModelSelect();
 
+        // 加载对话历史
         const { data: historyData } = await supabaseClient.from("conversations").select("*").eq("user_id", currentUser.id).order("created_at", { ascending: true });
         if (historyData && historyData.length) {
             conversationHistory = historyData.map(h => ({ role: h.role, content: h.content, model: h.model }));
