@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>命理分析系统 · 多模型聚合</title>
+    <title>命理分析系统 · 智谱AI</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
@@ -233,7 +233,7 @@
         </div>
         <div class="chat-area" id="chatArea"></div>
         <div class="input-area">
-            <input type="text" id="userInput" class="compact-input" placeholder="输入出生信息或问事... 支持 /list, /add, /switch">
+            <input type="text" id="userInput" class="compact-input" placeholder="输入出生信息或问事...">
             <button class="compact-btn" id="sendBtn">发送</button>
         </div>
         <div class="action-buttons">
@@ -246,8 +246,6 @@
 <div class="drawer" id="drawer">
     <button class="close-drawer" id="closeDrawer">✖</button>
     <h3>⚙️ 设置</h3>
-    <label>模型选择</label>
-    <select id="modelSelect"></select>
     <label>温度 <input type="range" id="temperature" min="0" max="2" step="0.1" value="0.7"></label>
     <span id="tempValue">0.7</span><br>
     <label>Top P <input type="range" id="topP" min="0" max="1" step="0.05" value="0.9"></label>
@@ -255,7 +253,6 @@
     <label>频率惩罚 <input type="range" id="freqPenalty" min="0" max="2" step="0.1" value="0"></label>
     <span id="freqValue">0</span><br>
     <label>最大长度 <input type="number" id="maxTokens" value="2000" min="100" max="4000"></label>
-    <label>自动模型推荐 <input type="checkbox" id="autoModelRecommend"></label>
     <hr>
     <h4>提示词模板</h4>
     <select id="templateSelect"></select>
@@ -273,7 +270,7 @@
     const SUPABASE_URL = "https://nqkmnaqdkkpuzknmipbv.supabase.co";
     const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5xa21uYXFka2twdXprbm1pcGJ2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ4OTEwMDAsImV4cCI6MjA5MDQ2NzAwMH0.6Do4nN4Mwpt7cvIikAcXy5w7yKxbw0BW7NqsT5nZ71c";
 
-    // ======================== 命理分析系统提示词（与之前相同，此处省略以节省篇幅，实际使用时请保留完整提示词） ========================
+    // ======================== 命理分析系统提示词 ========================
     const SYSTEM_PROMPT = `你是一个融合传统命理体系与现代结构化推理能力的高级命理分析系统。
 
 你的分析基于：
@@ -395,35 +392,13 @@
 【最终目标】
 让用户感受到：分析有逻辑，结论有依据，内容有深度，表达像真人大师，而不是AI生成。`;
 
-    // ======================== 默认模型列表（涵盖主流大厂） ========================
-    const DEFAULT_MODELS = [
-        { display: "OpenAI GPT-4o", value: "openai:gpt-4o" },
-        { display: "OpenAI GPT-4-turbo", value: "openai:gpt-4-turbo" },
-        { display: "OpenAI GPT-3.5-turbo", value: "openai:gpt-3.5-turbo" },
-        { display: "Google Gemini 1.5 Pro", value: "google:gemini-1.5-pro" },
-        { display: "Google Gemini 1.5 Flash", value: "google:gemini-1.5-flash" },
-        { display: "Anthropic Claude 3 Opus", value: "anthropic:claude-3-opus-20240229" },
-        { display: "Anthropic Claude 3 Sonnet", value: "anthropic:claude-3-sonnet-20240229" },
-        { display: "Anthropic Claude 3 Haiku", value: "anthropic:claude-3-haiku-20240307" },
-        { display: "月之暗面 Kimi K2.5", value: "moonshot:moonshot-v1-8k" },
-        { display: "月之暗面 Kimi K2.5-32k", value: "moonshot:moonshot-v1-32k" },
-        { display: "智谱 GLM-4.7", value: "zhipu:glm-4.7" },
-        { display: "智谱 GLM-5-Turbo", value: "zhipu:glm-5-turbo" },
-        { display: "阿里云通义千问 Max", value: "qwen:qwen-max" },
-        { display: "阿里云通义千问 Plus", value: "qwen:qwen-plus" },
-        { display: "百度文心一言 ERNIE 4.0", value: "baidu:ernie-4.0-8k" },
-        { display: "百度文心一言 ERNIE 3.5", value: "baidu:ernie-3.5-8k" },
-        { display: "科大讯飞星火 3.5 Max", value: "spark:spark-3.5-max" },
-        { display: "字节豆包 Pro 32k", value: "doubao:doubao-pro-32k" },
-        { display: "腾讯混元 Pro", value: "hunyuan:hunyuan-pro" }
-    ];
+    // 固定模型标识符（智谱 GLM-4.7 免费版）
+    const MODEL_ID = "zhipu:glm-4.7";
 
     // 全局变量
-    let modelList = [];
     let conversationHistory = [];
     let systemPrompt = SYSTEM_PROMPT;
     let temperature = 0.7, topP = 0.9, freqPenalty = 0, maxTokens = 2000;
-    let autoModelRecommend = false;
     let supabaseClient = null;
     let currentUser = null;
     let isAuthMode = true;
@@ -436,7 +411,6 @@
     const authButton = document.getElementById("authButton");
     const authError = document.getElementById("authError");
     const toggleAuthMode = document.getElementById("toggleAuthMode");
-    const modelSelect = document.getElementById("modelSelect");
     const themeToggle = document.getElementById("themeToggle");
     const settingsBtn = document.getElementById("settingsBtn");
     const chatArea = document.getElementById("chatArea");
@@ -453,7 +427,6 @@
     const freqPenaltySlider = document.getElementById("freqPenalty");
     const freqValue = document.getElementById("freqValue");
     const maxTokensInput = document.getElementById("maxTokens");
-    const autoModelCheck = document.getElementById("autoModelRecommend");
     const templateSelect = document.getElementById("templateSelect");
     const insertTemplateBtn = document.getElementById("insertTemplateBtn");
     const saveTemplateBtn = document.getElementById("saveTemplateBtn");
@@ -527,19 +500,10 @@
     }
 
     async function loadUserData() {
-        // 加载模型列表
-        const { data: modelsData } = await supabaseClient.from("user_models").select("*").eq("user_id", currentUser.id);
-        if (modelsData && modelsData.length > 0) {
-            modelList = modelsData.map(m => ({ display: m.display, value: m.model_value }));
-        } else {
-            modelList = [...DEFAULT_MODELS];
-        }
-        renderModelSelect();
-
         // 加载对话历史
         const { data: historyData } = await supabaseClient.from("conversations").select("*").eq("user_id", currentUser.id).order("created_at", { ascending: true });
         if (historyData && historyData.length) {
-            conversationHistory = historyData.map(h => ({ role: h.role, content: h.content, model: h.model }));
+            conversationHistory = historyData.map(h => ({ role: h.role, content: h.content }));
         } else {
             conversationHistory = [];
         }
@@ -560,7 +524,6 @@
                 topP = settings.topP ?? 0.9;
                 freqPenalty = settings.freqPenalty ?? 0;
                 maxTokens = settings.maxTokens ?? 2000;
-                autoModelRecommend = settings.autoModelRecommend ?? false;
                 temperatureSlider.value = temperature;
                 tempValue.innerText = temperature;
                 topPSlider.value = topP;
@@ -568,12 +531,11 @@
                 freqPenaltySlider.value = freqPenalty;
                 freqValue.innerText = freqPenalty;
                 maxTokensInput.value = maxTokens;
-                autoModelCheck.checked = autoModelRecommend;
             } catch(e) {}
         }
     }
     function saveSettings() {
-        const settings = { temperature, topP, freqPenalty, maxTokens, autoModelRecommend };
+        const settings = { temperature, topP, freqPenalty, maxTokens };
         localStorage.setItem("user_settings", JSON.stringify(settings));
     }
 
@@ -593,24 +555,6 @@
     }
     function saveTemplates() { localStorage.setItem("templates", JSON.stringify(templates)); }
 
-    function renderModelSelect() {
-        modelSelect.innerHTML = "";
-        modelList.forEach((m, idx) => {
-            const opt = document.createElement("option");
-            opt.value = m.value;
-            opt.textContent = `${idx+1}. ${m.display}`;
-            modelSelect.appendChild(opt);
-        });
-    }
-    function saveModels() {
-        if (supabaseClient && currentUser) {
-            supabaseClient.from("user_models").delete().eq("user_id", currentUser.id).then(() => {
-                const inserts = modelList.map(m => ({ user_id: currentUser.id, display: m.display, model_value: m.value }));
-                supabaseClient.from("user_models").insert(inserts).then();
-            });
-        }
-        localStorage.setItem("model_list", JSON.stringify(modelList));
-    }
     function saveHistory() {
         if (conversationHistory.length > 100) conversationHistory = conversationHistory.slice(-100);
         localStorage.setItem("chat_history", JSON.stringify(conversationHistory));
@@ -620,7 +564,7 @@
                     user_id: currentUser.id,
                     role: msg.role,
                     content: msg.content,
-                    model: msg.model || null
+                    model: "智谱GLM-4.7"
                 }));
                 supabaseClient.from("conversations").insert(inserts).then();
             });
@@ -629,16 +573,16 @@
     function renderChat() {
         chatArea.innerHTML = "";
         for (let msg of conversationHistory) {
-            addMessageToUI(msg.role, msg.content, msg.model);
+            addMessageToUI(msg.role, msg.content);
         }
         chatArea.scrollTop = chatArea.scrollHeight;
     }
-    function addMessageToUI(role, content, modelName = "") {
+    function addMessageToUI(role, content) {
         const msgDiv = document.createElement("div");
         msgDiv.className = `message ${role}`;
         const roleTag = document.createElement("div");
         roleTag.className = "role-tag";
-        roleTag.innerText = role === "user" ? "你" : (modelName ? `🤖 ${modelName}` : "🦞 助手");
+        roleTag.innerText = role === "user" ? "你" : "🤖 智谱AI";
         const bubble = document.createElement("div");
         bubble.className = "bubble";
         if (role === "assistant") {
@@ -657,9 +601,9 @@
         conversationHistory.push({ role: "user", content: text });
         saveHistory();
     }
-    function addAssistantMessage(text, modelName = "") {
-        addMessageToUI("assistant", text, modelName);
-        conversationHistory.push({ role: "assistant", content: text, model: modelName });
+    function addAssistantMessage(text) {
+        addMessageToUI("assistant", text);
+        conversationHistory.push({ role: "assistant", content: text });
         saveHistory();
     }
     let typingInterval;
@@ -678,11 +622,11 @@
             }, speed);
         });
     }
-    async function callAPI(model, prompt) {
+    async function callAPI(prompt) {
         const response = await fetch('/api/chat', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ model, prompt, temperature, topP, freqPenalty, maxTokens })
+            body: JSON.stringify({ model: MODEL_ID, prompt, temperature, topP, freqPenalty, maxTokens })
         });
         if (!response.ok) throw new Error(await response.text());
         const data = await response.json();
@@ -696,86 +640,9 @@
         return `${systemPrompt}\n\n对话历史:\n${context}`;
     }
     async function askWithPipeline(userMessage) {
-        let selectedModel = modelSelect.value;
-        if (autoModelRecommend) {
-            // 简单推荐逻辑：根据关键词推荐模型
-            if (userMessage.includes("八字") || userMessage.includes("出生")) {
-                // 保留用户当前选择，不做强制切换，仅提示
-            }
-        }
         const fullPrompt = buildContextPrompt(userMessage);
-        const answer = await callAPI(selectedModel, fullPrompt);
+        const answer = await callAPI(fullPrompt);
         return answer;
-    }
-    function handleCommand(input) {
-        const trimmed = input.trim().toLowerCase();
-        const parts = trimmed.split(/\s+/);
-        const cmd = parts[0];
-        if (cmd === '/list') {
-            let msg = '📋 当前可用模型列表：\n';
-            modelList.forEach((m, idx) => msg += `${idx+1}. ${m.display} → ${m.value}\n`);
-            addAssistantMessage(msg, '系统指令');
-            return true;
-        }
-        if (cmd === '/switch') {
-            if (parts.length < 2) { addAssistantMessage('用法：/switch <序号> 或 /switch <模型名>', '系统指令'); return true; }
-            const target = parts.slice(1).join(' ');
-            let idx = parseInt(target);
-            if (!isNaN(idx) && idx >= 1 && idx <= modelList.length) {
-                modelSelect.value = modelList[idx-1].value;
-                addAssistantMessage(`✅ 已切换到 ${modelList[idx-1].display}`, '系统指令');
-                return true;
-            }
-            const matched = modelList.find(m => m.display.toLowerCase().includes(target));
-            if (matched) {
-                modelSelect.value = matched.value;
-                addAssistantMessage(`✅ 已切换到 ${matched.display}`, '系统指令');
-                return true;
-            }
-            addAssistantMessage(`未找到匹配的模型：${target}`, '系统指令');
-            return true;
-        }
-        if (cmd === '/add') {
-            if (parts.length < 3) { addAssistantMessage('用法：/add "显示名" 模型标识符', '系统指令'); return true; }
-            let display, value;
-            if (input.match(/^\/add\s+"([^"]+)"\s+(\S+)/)) {
-                const match = input.match(/^\/add\s+"([^"]+)"\s+(\S+)/);
-                display = match[1]; value = match[2];
-            } else {
-                display = parts[1]; value = parts[2];
-            }
-            if (modelList.some(m => m.value === value)) { addAssistantMessage(`模型标识符 ${value} 已存在`, '系统指令'); return true; }
-            modelList.push({ display, value });
-            saveModels();
-            renderModelSelect();
-            addAssistantMessage(`✅ 已添加模型：${display} (${value})`, '系统指令');
-            return true;
-        }
-        if (cmd === '/remove') {
-            if (parts.length < 2) { addAssistantMessage('用法：/remove <序号> 或 /remove <模型名>', '系统指令'); return true; }
-            const target = parts.slice(1).join(' ');
-            let idx = parseInt(target);
-            let removed = null;
-            if (!isNaN(idx) && idx >= 1 && idx <= modelList.length) removed = modelList.splice(idx-1, 1)[0];
-            else {
-                const idxMatch = modelList.findIndex(m => m.display.toLowerCase().includes(target));
-                if (idxMatch !== -1) removed = modelList.splice(idxMatch, 1)[0];
-            }
-            if (removed) {
-                saveModels();
-                renderModelSelect();
-                addAssistantMessage(`🗑️ 已删除模型：${removed.display}`, '系统指令');
-            } else addAssistantMessage(`未找到要删除的模型：${target}`, '系统指令');
-            return true;
-        }
-        if (cmd === '/template') {
-            const tplName = parts.slice(1).join(' ');
-            const tpl = templates.find(t => t.name.toLowerCase().includes(tplName));
-            if (tpl) { userInput.value = tpl.content; addAssistantMessage(`📋 已插入模板：${tpl.name}`, '系统指令'); }
-            else addAssistantMessage(`未找到模板：${tplName}`, '系统指令');
-            return true;
-        }
-        return false;
     }
 
     let isSending = false;
@@ -785,15 +652,6 @@
         if (!text) return;
         isSending = true;
         sendBtn.disabled = true;
-
-        if (text.startsWith('/')) {
-            if (handleCommand(text)) {
-                userInput.value = '';
-                isSending = false;
-                sendBtn.disabled = false;
-                return;
-            }
-        }
 
         userInput.value = '';
         addUserMessage(text);
@@ -809,14 +667,14 @@
             msgDiv.className = "message assistant";
             const roleTag = document.createElement("div");
             roleTag.className = "role-tag";
-            roleTag.innerText = `🤖 ${modelSelect.options[modelSelect.selectedIndex]?.text || "AI助手"}`;
+            roleTag.innerText = "🤖 智谱AI";
             const bubble = document.createElement("div");
             bubble.className = "bubble";
             msgDiv.appendChild(roleTag);
             msgDiv.appendChild(bubble);
             chatArea.appendChild(msgDiv);
             await typeWriter(bubble, answer, 15);
-            conversationHistory.push({ role: "assistant", content: answer, model: modelSelect.options[modelSelect.selectedIndex]?.text });
+            conversationHistory.push({ role: "assistant", content: answer });
             saveHistory();
         } catch (err) {
             thinkingDiv.remove();
@@ -840,16 +698,15 @@
 
     function exportData() {
         const data = {
-            models: modelList,
             history: conversationHistory,
             templates: templates,
-            settings: { temperature, topP, freqPenalty, maxTokens, autoModelRecommend }
+            settings: { temperature, topP, freqPenalty, maxTokens }
         };
         const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = `lobster_backup_${new Date().toISOString()}.json`;
+        a.download = `zhipu_backup_${new Date().toISOString()}.json`;
         a.click();
         URL.revokeObjectURL(url);
     }
@@ -858,7 +715,6 @@
         reader.onload = (e) => {
             try {
                 const data = JSON.parse(e.target.result);
-                if (data.models) { modelList = data.models; saveModels(); renderModelSelect(); }
                 if (data.history) { conversationHistory = data.history; saveHistory(); renderChat(); }
                 if (data.templates) { templates = data.templates; saveTemplates(); updateTemplateSelect(); }
                 if (data.settings) {
@@ -866,12 +722,10 @@
                     topP = data.settings.topP ?? 0.9;
                     freqPenalty = data.settings.freqPenalty ?? 0;
                     maxTokens = data.settings.maxTokens ?? 2000;
-                    autoModelRecommend = data.settings.autoModelRecommend ?? false;
                     temperatureSlider.value = temperature; tempValue.innerText = temperature;
                     topPSlider.value = topP; topPValue.innerText = topP;
                     freqPenaltySlider.value = freqPenalty; freqValue.innerText = freqPenalty;
                     maxTokensInput.value = maxTokens;
-                    autoModelCheck.checked = autoModelRecommend;
                     saveSettings();
                 }
                 addAssistantMessage("✅ 数据导入成功！", "系统");
@@ -902,7 +756,6 @@
         restoreBtn.addEventListener("click", () => restoreFile.click());
         restoreFile.addEventListener("change", (e) => { if (e.target.files[0]) importData(e.target.files[0]); restoreFile.value = ""; });
 
-        // 设置面板控件
         temperatureSlider.addEventListener("input", () => {
             temperature = parseFloat(temperatureSlider.value);
             tempValue.innerText = temperature;
@@ -920,10 +773,6 @@
         });
         maxTokensInput.addEventListener("change", () => {
             maxTokens = parseInt(maxTokensInput.value);
-            saveSettings();
-        });
-        autoModelCheck.addEventListener("change", () => {
-            autoModelRecommend = autoModelCheck.checked;
             saveSettings();
         });
 
@@ -944,7 +793,6 @@
             }
         });
 
-        // 主题初始化
         const savedTheme = localStorage.getItem("theme");
         if (savedTheme === "dark") document.body.classList.add("dark");
         else document.body.classList.remove("dark");
