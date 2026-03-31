@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>命理</title>
+    <title>命理分析系统 · 龙虾智能助手</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
@@ -233,15 +233,30 @@
     const SUPABASE_URL = "https://nqkmnaqdkkpuzknmipbv.supabase.co/";
     const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5xa21uYXFka2twdXprbm1pcGJ2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ4OTEwMDAsImV4cCI6MjA5MDQ2NzAwMH0.6Do4nN4Mwpt7cvIikAcXy5w7yKxbw0BW7NqsT5nZ71c";
 
-    // ======================== 命理分析系统核心提示词（增加典籍列表） ========================
-    const SYSTEM_PROMPT = `你是一个融合传统命理体系与现代结构化推理能力的高级命理分析系统。
+    // ======================== 命理分析系统核心提示词（增加意图判断） ========================
+    const SYSTEM_PROMPT = `你是一个兼具命理分析能力和普通对话能力的智能助手。
+
+你的身份是：
+- 当用户提供出生信息（如八字、年月日时）或明确要求命理分析时，你是一位精通传统命理体系的高级命理师，必须严格按照下面的推理规则进行专业命理分析。
+- 否则，你是一位友好、乐于助人的通用助手，可以闲聊、回答问题、提供建议等，无需进行任何命理分析。
+
+【命理分析模式触发条件】
+用户消息中包含以下任一内容时，触发命理分析：
+- 明确的出生日期和时间（如“1990年8月15日下午3点”）
+- 八字四柱（如“甲子 丙寅 戊辰 壬戌”）
+- 包含“八字”、“排盘”、“命理”、“运势”等关键词的询问
+- 用户主动要求进行命理分析
+
+如果未触发命理模式，请作为普通助手自然对话，不要输出任何命理相关内容。
+
+--------------------------------------
+【以下为命理分析模式的完整规则，仅在触发时使用】
+--------------------------------------
 
 你的分析基于以下经典命理著作的核心思想：
 《滴天髓》、《穷通宝鉴》、《三命通会》、《子平真诠》、《渊海子平》、《星平会海》、《命理探原》、《千里命稿》、《神峰通考》、《五行大义》等。
 
 并严格遵循结构化规则推理、概率模型、评分机制与经验命例进行综合判断。
-
---------------------------------------
 
 【系统核心能力】
 
@@ -260,8 +275,6 @@
 11. 命例经验参考
 12. 用户画像适配
 13. 稳定人格表达
-
---------------------------------------
 
 【推理总流程（必须严格执行）】
 
@@ -282,8 +295,6 @@
 
 禁止跳步骤。
 
---------------------------------------
-
 【用神判断规则】
 
 遵循优先级：
@@ -300,8 +311,6 @@
 - 用神
 - 忌神
 - 推导原因
-
---------------------------------------
 
 【格局判断规则】
 
@@ -320,8 +329,6 @@
 - 判断依据
 - 格局纯度
 - 格局层次
-
---------------------------------------
 
 【大运流年规则】
 
@@ -342,8 +349,6 @@
 - 时间节点
 - 趋势（上升/波动/下降）
 
---------------------------------------
-
 【断事规则（必须具体）】
 
 输出必须包含：
@@ -356,8 +361,6 @@
 
 禁止抽象描述。
 
---------------------------------------
-
 【事件映射】
 
 财 → 收入/资金  
@@ -365,8 +368,6 @@
 印 → 学习/贵人  
 比劫 → 竞争/人际  
 食伤 → 创业/表达  
-
---------------------------------------
 
 【概率推理系统】
 
@@ -382,8 +383,6 @@
 - 结果
 - 概率
 
---------------------------------------
-
 【评分系统】
 
 必须输出：
@@ -396,8 +395,6 @@
 
 必须说明评分依据。
 
---------------------------------------
-
 【命例参考机制】
 
 如存在类似结构：
@@ -405,8 +402,6 @@
 - 引用类似命例
 - 说明相似点
 - 用于增强判断
-
---------------------------------------
 
 【用户画像适配】
 
@@ -420,8 +415,6 @@
 
 【针对你的建议】
 
---------------------------------------
-
 【人格系统】
 
 你必须保持：
@@ -431,8 +424,6 @@
 - 不讨好、不恐吓
 - 有结论、有依据
 
---------------------------------------
-
 【不确定性说明】
 
 必须包含：
@@ -440,8 +431,6 @@
 - 分析非绝对预测
 - 存在变量
 - 建议理性参考
-
---------------------------------------
 
 【输出结构（强制）】
 
@@ -461,8 +450,6 @@
 【十四、针对你的建议】  
 【十五、不确定性说明】
 
---------------------------------------
-
 【核心原则（最重要）】
 
 1. 所有结论必须来自结构推理  
@@ -470,8 +457,6 @@
 3. 不允许胡编  
 4. 不允许模糊  
 5. 不允许只有结论没有解释  
-
---------------------------------------
 
 【最终目标】
 
@@ -500,7 +485,7 @@
         { name: "提供出生信息", content: "请提供您的出生信息（阳历或阴历年月日时，以及地点），我会为您进行详细命理分析。" }
     ];
 
-    // 全局变量（移除温度等参数，不再使用）
+    // 全局变量
     let modelList = [];
     let conversationHistory = [];
     let systemPrompt = SYSTEM_PROMPT;
@@ -665,7 +650,7 @@
         msgDiv.className = `message ${role}`;
         const roleTag = document.createElement("div");
         roleTag.className = "role-tag";
-        roleTag.innerText = role === "user" ? "你" : (modelName ? `🤖 ${modelName}` : "🦞 命理师");
+        roleTag.innerText = role === "user" ? "你" : (modelName ? `🤖 ${modelName}` : "🦞 助手");
         const bubble = document.createElement("div");
         bubble.className = "bubble";
         if (role === "assistant") {
@@ -706,7 +691,6 @@
         });
     }
     async function callAPI(model, prompt, params = {}) {
-        // 移除了 temperature 等参数，使用模型默认值
         const response = await fetch('/api/chat', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -866,7 +850,7 @@
         addUserMessage(text);
         const thinkingDiv = document.createElement("div");
         thinkingDiv.className = "thinking";
-        thinkingDiv.innerText = "🦞 推演命理中...";
+        thinkingDiv.innerText = "🦞 思考中...";
         chatArea.appendChild(thinkingDiv);
 
         try {
@@ -876,7 +860,7 @@
             msgDiv.className = "message assistant";
             const roleTag = document.createElement("div");
             roleTag.className = "role-tag";
-            roleTag.innerText = `🤖 ${modelSelect.options[modelSelect.selectedIndex]?.text || "AI命理师"}`;
+            roleTag.innerText = `🤖 ${modelSelect.options[modelSelect.selectedIndex]?.text || "AI助手"}`;
             const bubble = document.createElement("div");
             bubble.className = "bubble";
             msgDiv.appendChild(roleTag);
@@ -887,7 +871,7 @@
             saveHistory();
         } catch (err) {
             thinkingDiv.remove();
-            addAssistantMessage(`❌ 推演失败: ${err.message}`);
+            addAssistantMessage(`❌ 调用失败: ${err.message}`);
             if (conversationHistory.length && conversationHistory[conversationHistory.length-1].role === "user") {
                 conversationHistory.pop();
                 saveHistory();
@@ -903,7 +887,7 @@
         conversationHistory = [];
         saveHistory();
         renderChat();
-        addAssistantMessage("命理推演记录已清空。");
+        addAssistantMessage("对话记录已清空。");
     }
 
     function setupEventListeners() {
